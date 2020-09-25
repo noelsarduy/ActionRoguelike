@@ -14,6 +14,11 @@ class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+protected:
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ProjectileClass;
+
 public:
 	// Sets default values for this character's properties
 	ASCharacter();
@@ -28,7 +33,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	void MoveForward(float Value);
+	
 	void MoveRight(float Value);
+
+	void PrimaryAttack();
+
+	// void Jump(float Value);
 
 public:	
 	// Called every frame
@@ -37,4 +47,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION()
+	void StartJump();
+	
+	UFUNCTION()
+	void StopJump();
 };
