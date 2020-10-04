@@ -4,20 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SMagicProjectile.generated.h"
-
-class USphereComponent;
-class UProjectileMovementComponent;
-class UParticleSystemComponent;
+#include <GameFramework/ProjectileMovementComponent.h>
+#include <Components/SphereComponent.h>
+#include "STeleportingProjectile.generated.h"
 
 UCLASS()
-class ACTIONROGUELIKE_API ASMagicProjectile : public AActor
+class ACTIONROGUELIKE_API ASTeleportingProjectile : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ASMagicProjectile();
+	ASTeleportingProjectile();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);
@@ -28,6 +26,23 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly);
 	UParticleSystemComponent* EffectComp;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "FX");
+	UParticleSystem* ExplosionFX;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BlueprintExplode();
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	
+	//UPROPERTY(VisibleAnywhere);
+	//APawn* Instigator;
+
+	FTimerHandle TimerHandle_Begin;
+
+	void TimeElapsed();
+	void Explode();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
