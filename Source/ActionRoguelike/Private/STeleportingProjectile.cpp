@@ -15,43 +15,54 @@ ASTeleportingProjectile::ASTeleportingProjectile()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SphereComp = CreateDefaultSubobject <USphereComponent>("SphereComp");
+	SphereComp->SetCollisionProfileName("Projectile");
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject <UParticleSystemComponent>("EffectComp");
 	EffectComp->SetupAttachment(SphereComp);
 
 	MovementComp = CreateDefaultSubobject <UProjectileMovementComponent>("MovementComp");
-	MovementComp->InitialSpeed = 1500.0f;
+	MovementComp->InitialSpeed = 10000.0f;
+	MovementComp->ProjectileGravityScale = 0.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;
 }
 
 void ASTeleportingProjectile::TimeElapsed()
 {
+	//Clear Timer if on hit
+	GetWorldTimerManager().ClearTimer(TimerHandle_Begin);
+	//Display Explosion effect & stop EffectComp
+	UGameplayStatics::SpawnEmitterAtLocation(this,ExplosionFX, GetActorLocation(), GetActorRotation());
+	EffectComp->DeactivateSystem();
+	//
 	MovementComp->StopMovementImmediately();
 	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionFX, GetActorLocation(), FRotator::ZeroRotator);
-	BlueprintExplode();
+	SetActorEnableCollision(false);
+	//Teleport Actor
+	FTimerHandle Teleport;
+	GetWorldTimerManager().SetTimer(Teleport, this, &ASTeleportingProjectile::Explode, 0.2f);
 }
 
 void ASTeleportingProjectile::Explode()
 {
-	AActor* Instigator = this->GetInstigator();
-	Instigator->SetActorLocation(GetActorLocation());
+	AActor* Teleporter = GetInstigator();
+	Teleporter->SetActorLocation(this->GetActorLocation());
 	Destroy();
 }
 
 void ASTeleportingProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	TimeElapsed();
 	Explode();
 }
 // Called when the game starts or when spawned
 void ASTeleportingProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	//Ignore Caster
+	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
+	//Explode & Teleport
 	GetWorldTimerManager().SetTimer(TimerHandle_Begin, this, &ASTeleportingProjectile::TimeElapsed, 0.2f);
-	GetWorldTimerManager().SetTimer(TimerHandle_Begin, this, &ASTeleportingProjectile::Explode, 0.4f);
 	
 	
 }

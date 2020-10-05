@@ -77,10 +77,9 @@ void ASCharacter::StopJump()
 	bPressedJump = false;
 }
 
-FVector ASCharacter::ProjectileDirectionCalc() 
+void ASCharacter::ProjectileDirectionCalc(TSubclassOf<AActor>Projectile) 
 {
 	//Get Camera Manager
-
 	APlayerCameraManager* CurrentCamera = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 	//Get Camera information for raycast & set up collision channel
 	FHitResult Hit;
@@ -92,33 +91,30 @@ FVector ASCharacter::ProjectileDirectionCalc()
 	//Raycast Length
 	FVector End = CamLoc + (CamRot.Vector() * 10000);
 	FVector HitEnd;
-	//Raycast
-	bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, CamLoc, End, TraceChannel);
+	//Raycast must ignore actor
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, CamLoc, End, TraceChannel, QueryParams);
 	//If hit get vector to hit location
 	if (bBlockingHit) {
-		HitEnd = Hit.Location;
-	}
-	//Else use raycast length
-	else 
-	{
-		HitEnd = End;
+		End = Hit.Location;
 	}
 	//Debug Line
-	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
-	DrawDebugLine(GetWorld(), CamLoc, End, LineColor, false, 10.0f, 0, 10.0f);
-	return HitEnd;
-
-	/*FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-
-	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, HitEnd);
-
+	//FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
+	//DrawDebugLine(GetWorld(), CamLoc, End, LineColor, false, 10.0f, 0, 10.0f);
+	
+	//Set up Spawn Location and Rotation for Projectile
+	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, End);
 	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
-
+	//Spawn Projectile
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;	
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(Instigator);*/
+	SpawnParams.Instigator = this;
+
+	GetWorld()->SpawnActor<AActor>(Projectile, SpawnTM, SpawnParams);
+
 }
 
 
@@ -126,7 +122,6 @@ void ASCharacter::PrimaryAttack()
 {
 	
 	PlayAnimMontage(AttackAnim);
-
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.18f);
 	
 	//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack)
@@ -136,69 +131,34 @@ void ASCharacter::PrimaryAttack()
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
 {	
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	FVector HitEnd = ProjectileDirectionCalc();
-	
-	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, HitEnd);
-	
-	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	ProjectileDirectionCalc(ProjectileClass);
 
 }
 
 void ASCharacter::BlackHoleAbility() 
 {
-	PlayAnimMontage(AttackAnim);
-
+	PlayAnimMontage(BlackHoleAnim);
 	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAbility, this, &ASCharacter::BlackHoleAbility_TimeElapsed, 0.18f);
 }
 
 void ASCharacter::BlackHoleAbility_TimeElapsed()
 {
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	FVector HitEnd = ProjectileDirectionCalc();
-
-	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, HitEnd);
-
-	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	GetWorld()->SpawnActor<AActor>(BlackHoleProjectileClass, SpawnTM, SpawnParams);
+	ProjectileDirectionCalc(BlackHoleProjectileClass);
 
 }
 
 void ASCharacter::Dash()
 {
-	PlayAnimMontage(AttackAnim);
-
+	PlayAnimMontage(DashAnim);
 	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, 0.18f);
 }
 
 void ASCharacter::Dash_TimeElapsed()
 {
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	FVector HitEnd = ProjectileDirectionCalc();
-
-	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, HitEnd);
-
-	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	GetWorld()->SpawnActor<AActor>(DashProjectileClass, SpawnTM, SpawnParams);
+	ProjectileDirectionCalc(DashProjectileClass);
 
 }
 
@@ -242,5 +202,6 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 	// Player Ability
 	PlayerInputComponent->BindAction("BlackHoleAbility", IE_Pressed, this, &ASCharacter::BlackHoleAbility);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
 }
 

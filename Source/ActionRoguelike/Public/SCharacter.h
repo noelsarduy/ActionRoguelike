@@ -27,7 +27,13 @@ protected:
 	TSubclassOf<AActor> BlackHoleProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* BlackHoleAnim;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> DashProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	UAnimMontage* DashAnim;
 
 	FTimerHandle TimerHandle_PrimaryAttack;
 	FTimerHandle TimerHandle_BlackHoleAbility;
@@ -57,7 +63,7 @@ protected:
 	
 	void MoveRight(float Value);
 
-	FVector ProjectileDirectionCalc();
+	void ProjectileDirectionCalc(TSubclassOf<AActor> Projectile);
 
 	void PrimaryAttack();
 

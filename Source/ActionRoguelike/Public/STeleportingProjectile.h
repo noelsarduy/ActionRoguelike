@@ -30,14 +30,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "FX");
 	UParticleSystem* ExplosionFX;
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void BlueprintExplode();
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	
-	//UPROPERTY(VisibleAnywhere);
-	//APawn* Instigator;
 
 	FTimerHandle TimerHandle_Begin;
 
