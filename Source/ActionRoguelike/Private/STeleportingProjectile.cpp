@@ -46,8 +46,8 @@ void ASTeleportingProjectile::TimeElapsed()
 
 void ASTeleportingProjectile::Explode()
 {
-	AActor* Teleporter = GetInstigator();
-	Teleporter->SetActorLocation(this->GetActorLocation());
+	AActor* Instigator = GetInstigator();
+	Instigator->SetActorLocation(GetActorLocation());
 	Destroy();
 }
 
@@ -63,8 +63,8 @@ void ASTeleportingProjectile::BeginPlay()
 	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
 	//Explode & Teleport
 	GetWorldTimerManager().SetTimer(TimerHandle_Begin, this, &ASTeleportingProjectile::TimeElapsed, 0.2f);
-	
-	
+
+
 }
 
 // Called every frame
@@ -73,4 +73,3 @@ void ASTeleportingProjectile::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
