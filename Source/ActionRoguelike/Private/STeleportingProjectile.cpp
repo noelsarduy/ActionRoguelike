@@ -35,8 +35,8 @@ void ASTeleportingProjectile::TimeElapsed()
 
 void ASTeleportingProjectile::Explode()
 {
-	AActor* Teleporter = GetInstigator();
-	Teleporter->SetActorLocation(GetActorLocation());
+	AActor* Instigator = GetInstigator();
+	Instigator->SetActorLocation(GetActorLocation());
 	Destroy();
 }
 
