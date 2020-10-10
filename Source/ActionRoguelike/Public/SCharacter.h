@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class USInteractionComponent;
+class USAttributeComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
@@ -54,6 +55,14 @@ protected:
 
 	UPROPERTY(VisibleAnywhere);
 	USInteractionComponent* InteractionComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	USAttributeComponent* AttributeComp;
+
+	UFUNCTION()
+	void OnHealthChange(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	virtual void PostInitializeComponents() override;
 	
 
 	// Called when the game starts or when spawned

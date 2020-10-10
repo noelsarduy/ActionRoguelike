@@ -9,6 +9,9 @@
 #include "Camera/PlayerCameraManager.h"
 #include <DrawDebugHelpers.h>
 #include <Kismet/KismetMathLibrary.h>
+#include "SAttributeComponent.h"
+#include <GameFramework/PlayerController.h>
+
 
 // Sets default values
 ASCharacter::ASCharacter()
@@ -25,6 +28,8 @@ ASCharacter::ASCharacter()
 
 	InteractionComp = CreateDefaultSubobject<USInteractionComponent>("InteractionComp");
 
+	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
@@ -32,6 +37,14 @@ ASCharacter::ASCharacter()
 	// Random Jump Height
     float RandomVelocity = FMath::RandRange(400.0f, 1000.0f);
 	GetCharacterMovement()->JumpZVelocity = RandomVelocity;
+
+	//AttributeComp->OnHealthChange.AddDynamic(this, &ASCharacter::OnHealthChange);
+}
+void ASCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	AttributeComp->OnHealthChange.AddDynamic(this, &ASCharacter::OnHealthChange);
 }
 
 // Called when the game starts or when spawned
@@ -170,6 +183,23 @@ void ASCharacter::PrimaryInteract()
 	}
 }
 
+void ASCharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	if (Delta < 0.0f)
+	{
+		UActorComponent* Comp = GetComponentByClass(USkeletalMeshComponent::StaticClass());
+		USkeletalMeshComponent* MeshComp = Cast<USkeletalMeshComponent>(Comp);
+		MeshComp->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		//FVector InputColor = 1,1,1;
+		//MeshComp->SetVectorParameterValueOnMaterials("Color", );
+	}
+
+	if (NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
+	}
+}
 
 
 /*void ASCharacter::Sprint(*/
