@@ -34,7 +34,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	UAudioComponent* SoundComponent;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Effects");
+	UPROPERTY(EditDefaultsOnly, Category = "Components");
 	USoundBase* ImpactSound;
 
 	//'virtual' so we can override this in child-classes

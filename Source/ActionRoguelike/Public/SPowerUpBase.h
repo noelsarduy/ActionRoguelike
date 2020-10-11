@@ -4,31 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "SHealthPowerUp.generated.h"
+#include "SGameplayInterface.h"
+#include "SPowerUpBase.generated.h"
+
+class USphereComponent;
 
 UCLASS()
-class ACTIONROGUELIKE_API ASHealthPowerUp : public AActor
+class ACTIONROGUELIKE_API ASPowerUpBase : public AActor, public ISGameplayInterface
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	ASHealthPowerUp();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	USphereComponent* SphereComp;
-	virtual void BeginPlay() override;
+	
+	UPROPERTY(EditAnywhere, Category = "Powerup")
+	float RespawnTime;
 	FTimerHandle Respawn;
-
-	UFUNCTION()
+	
 	void Activate();
 	void Cooldown();
-
-	void ActivateLogic(bool bIsReady);
+	void PowerUpState(bool bIsReady);
 
 public:	
-	void Interact(APawn* InstigatorPawn);
-	virtual void Tick(float DeltaTime) override;
+
+	void Interact_Implementation(APawn* InstigatorPawn) override;
+	ASPowerUpBase();
 
 };

@@ -50,6 +50,7 @@ void ASTeleportingProjectile::TeleportCaster()
 		Caster->TeleportTo(GetActorLocation(), Caster->GetActorRotation(), false, false);
 	}
 	//Caster->SetActorLocation(GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), GetActorRotation());
 	Destroy();
 }
 

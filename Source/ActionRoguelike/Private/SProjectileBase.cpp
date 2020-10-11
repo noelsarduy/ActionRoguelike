@@ -25,7 +25,7 @@ ASProjectileBase::ASProjectileBase()
 	MoveComp->InitialSpeed = 8000;
 	
 	SoundComponent = CreateDefaultSubobject<UAudioComponent>("SoundComp");
-	//SoundComponent->AttachParent = RootComponent; 
+	SoundComponent->AutoAttachParent = RootComponent; 
 	SoundComponent->bStopWhenOwnerDestroyed = true;
 
 }
@@ -54,5 +54,6 @@ void ASProjectileBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
+
 }
 

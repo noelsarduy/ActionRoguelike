@@ -16,12 +16,24 @@ bool USAttributeComponent::IsAlive() const
 	return Health > 0.0f;
 }
 
+bool USAttributeComponent::IsFullHealth() const
+{
+	return Health == HealthMax;
+}
+
+float USAttributeComponent::GetHealthMax() const
+{
+	return HealthMax;
+}
+
 
 bool USAttributeComponent::ApplyHealthChange(float Delta)
 {
-	Health += Delta;
+	float PrevHealth = Health;
 
-	OnHealthChange.Broadcast(nullptr, this, Health, Delta);
+	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
+	float ActualDelata = Health - PrevHealth;
+	OnHealthChange.Broadcast(nullptr, this, Health, ActualDelata);
 
 	return true;
 }
