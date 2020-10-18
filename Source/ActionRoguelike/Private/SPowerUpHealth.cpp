@@ -23,7 +23,7 @@ void ASPowerUpHealth::Interact_Implementation(APawn* InstigatorPawn)
 	USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass()));
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
 	{
-		if (AttributeComp->ApplyHealthChange(AttributeComp->GetHealthMax()))
+		if (AttributeComp->ApplyHealthChange(this, AttributeComp->GetHealthMax()))
 		{
 			Cooldown();
 		}

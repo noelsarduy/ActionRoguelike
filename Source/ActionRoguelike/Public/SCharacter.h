@@ -39,6 +39,7 @@ protected:
 	FTimerHandle TimerHandle_PrimaryAttack;
 	FTimerHandle TimerHandle_BlackHoleAbility;
 	FTimerHandle TimerHandle_Dash;
+	FTimerHandle TimerHandle_Death;
 	
 	
 
@@ -87,6 +88,8 @@ protected:
 	void Dash();
 
 	void Dash_TimeElapsed();
+	
+	void Death_TimeElapsed();
 	
 public:	
 	// Called every frame

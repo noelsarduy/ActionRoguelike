@@ -96,31 +96,45 @@ void ASCharacter::ProjectileDirectionCalc(TSubclassOf<AActor>Projectile)
 	APlayerCameraManager* CurrentCamera = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
 	//Get Camera information for raycast & set up collision channel
 	FHitResult Hit;
-	ECollisionChannel TraceChannel;
-	TraceChannel = ECC_Camera;
 	
 	FVector CamLoc = CurrentCamera->GetCameraLocation();
 	FRotator CamRot = CurrentCamera->GetCameraRotation();
+	
 	//Raycast Length
 	FVector End = CamLoc + (CamRot.Vector() * 10000);
 	FVector HitEnd;
-	//Raycast must ignore actor
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
+	
+	FCollisionShape Shape;
+	Shape.SetSphere(10.0f);
 
-	bool bBlockingHit = GetWorld()->LineTraceSingleByChannel(Hit, CamLoc, End, TraceChannel, QueryParams);
+	//Raycast must ignore actor
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	FCollisionObjectQueryParams ObjParams;
+	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	bool bBlockingHit = GetWorld()->SweepSingleByObjectType(Hit, CamLoc, End, FQuat::Identity, ObjParams, Shape, Params);
+	
 	//If hit get vector to hit location
-	if (bBlockingHit) {
+	if (bBlockingHit) 
+	{
 		End = Hit.Location;
 	}
-	//Debug Line
-	//FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
-	//DrawDebugLine(GetWorld(), CamLoc, End, LineColor, false, 10.0f, 0, 10.0f);
 	
+	//Debug Line
+	/*
+	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
+	DrawDebugLine(GetWorld(), CamLoc, End, LineColor, false, 10.0f, 0, 10.0f);
+	*/
+
 	//Set up Spawn Location and Rotation for Projectile
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, End);
 	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
+	
 	//Spawn Projectile
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -136,6 +150,7 @@ void ASCharacter::PrimaryAttack()
 	
 	PlayAnimMontage(AttackAnim);
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.18f);
+
 	
 	//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack)
 }
@@ -198,7 +213,15 @@ void ASCharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent* 
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());
 		DisableInput(PC);
+		GetWorldTimerManager().SetTimer(TimerHandle_Death, this, &ASCharacter::Death_TimeElapsed, 2.85f);
 	}
+}
+
+void ASCharacter::Death_TimeElapsed()
+{
+
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+
 }
 
 
