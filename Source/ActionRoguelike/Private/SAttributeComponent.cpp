@@ -3,14 +3,24 @@
 
 #include "SAttributeComponent.h"
 #include <Kismet/GameplayStatics.h>
+#include "SGameModeBase.h"
 
 // Sets default values for this component's properties
+
+static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("su.DamageMultiplier"), 1.0f, TEXT("Global Damage Modifier for Attribute Component."), ECVF_Cheat);
+
 USAttributeComponent::USAttributeComponent()
 {
 	HealthMax = 100;
 	Health = HealthMax;
+	TeamNumber = 0;
 }
 
+
+bool USAttributeComponent::Kill(AActor* InstigatorActor)
+{
+	return ApplyHealthChange(InstigatorActor, -GetHealthMax());
+}
 
 bool USAttributeComponent::IsAlive() const
 {
@@ -34,13 +44,34 @@ float USAttributeComponent::GetHealth() const
 
 bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
 {
+	if (!GetOwner()->CanBeDamaged())
+	{
+		return false;
+	}
+
+	if (Delta < 0.0f)
+	{
+		float DamageMultiplier = CVarDamageMultiplier.GetValueOnGameThread();
+
+		Delta *= DamageMultiplier;
+	}
+
 	float PrevHealth = Health;
 
 	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
-	float ActualDelata = Health - PrevHealth;
-	OnHealthChange.Broadcast(InstigatorActor, this, Health, ActualDelata);
+	float ActualDelta = Health - PrevHealth;
+	OnHealthChange.Broadcast(InstigatorActor, this, Health, ActualDelta);
 
-	return true;
+	if (ActualDelta < 0.0f && Health == 0.0f)
+	{
+		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
+		if(GM)
+		{
+			GM->OnActorKilled(GetOwner(), InstigatorActor);
+		}
+	}
+
+	return ActualDelta != 0;
 }
 
 /*bool USAttributeComponent::ApplyGradualHealthChange(AActor* InstigatorActor, float Delta, float HealingPeriod)

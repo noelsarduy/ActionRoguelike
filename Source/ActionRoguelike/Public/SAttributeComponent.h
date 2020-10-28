@@ -47,9 +47,12 @@ protected:
 	// HealthMax, Stamina, Strength
 
 public:
+	UFUNCTION(BlueprintCallable)
+	bool Kill(AActor* InstigatorActor);
 
 	UFUNCTION(BlueprintCallable)
 	bool IsAlive() const;
+	
 	UFUNCTION(BlueprintCallable)
 	bool IsFullHealth() const;
 
@@ -68,5 +71,7 @@ public:
 	//UFUNCTION(BlueprintCallable, Category = "Attributes")
 	//bool ApplyGradualHealthChange(AActor* InstigatorActor, float Delta, float HealingPeriod);
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Attributes")
+	int32 TeamNumber;
 
 };

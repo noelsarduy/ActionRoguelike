@@ -17,6 +17,9 @@ class ACTIONROGUELIKE_API ASPowerUpBase : public AActor, public ISGameplayInterf
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	USphereComponent* SphereComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	UMeshComponent* MeshComp;
 	
 	UPROPERTY(EditAnywhere, Category = "Powerup")
 	float RespawnTime;

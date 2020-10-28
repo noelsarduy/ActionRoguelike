@@ -37,9 +37,8 @@ ASCharacter::ASCharacter()
 	// Random Jump Height
     float RandomVelocity = FMath::RandRange(400.0f, 1000.0f);
 	GetCharacterMovement()->JumpZVelocity = RandomVelocity;
-
-	//AttributeComp->OnHealthChange.AddDynamic(this, &ASCharacter::OnHealthChange);
 }
+
 void ASCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -225,6 +224,11 @@ void ASCharacter::Death_TimeElapsed()
 }
 
 
+FVector ASCharacter::GetPawnViewLocation() const
+{
+	return CameraComp->GetComponentLocation();
+}
+
 /*void ASCharacter::Sprint(*/
 
 // Called every frame
@@ -256,5 +260,10 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Player Ability
 	PlayerInputComponent->BindAction("BlackHoleAbility", IE_Pressed, this, &ASCharacter::BlackHoleAbility);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
+}
+
+void ASCharacter::HealSelf(float Amount /* = 100 */)
+{
+	AttributeComp->ApplyHealthChange(this, Amount);
 }
 

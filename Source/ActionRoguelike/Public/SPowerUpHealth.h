@@ -14,9 +14,9 @@ class ACTIONROGUELIKE_API ASPowerUpHealth : public ASPowerUpBase
 	GENERATED_BODY()
 
 	protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
-	UMeshComponent* MeshComp;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Credits")
+	int32 CreditCost;
 	
 	public:
 	

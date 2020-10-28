@@ -10,6 +10,8 @@
 
 class UPawnSensingComponent;
 class USAttributeComponent;
+class UUserWidget;
+class USWorldUserWidget;
 
 
 UCLASS()
@@ -22,6 +24,13 @@ public:
 	ASAICharacter();
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Credits")
+	int32 CreditValue;
+	
+	USWorldUserWidget* ActiveHealthBar;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
@@ -43,6 +52,6 @@ protected:
 	void OnPawnSeen(APawn* Pawn);
 
 	UFUNCTION()
-		void OnHealthChange(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+	void OnHealthChange(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
 };
 

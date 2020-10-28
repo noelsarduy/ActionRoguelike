@@ -90,6 +90,8 @@ protected:
 	void Dash_TimeElapsed();
 	
 	void Death_TimeElapsed();
+
+	virtual FVector GetPawnViewLocation() const override;
 	
 public:	
 	// Called every frame
@@ -97,7 +99,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	UFUNCTION(Exec)
+	void HealSelf(float Amount = 100);
+	
 	UFUNCTION()
 	void StartJump();
 	

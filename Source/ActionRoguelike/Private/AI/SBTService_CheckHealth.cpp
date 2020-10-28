@@ -10,7 +10,7 @@
 
 USBTService_CheckHealth::USBTService_CheckHealth()
 {
-	LowHealthFraction = 0.3f;
+	LowHealthFraction = 0.4;
 }
 
 

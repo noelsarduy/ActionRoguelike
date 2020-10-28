@@ -18,7 +18,7 @@ EBTNodeResult::Type USBTTaskRegenerate::ExecuteTask(UBehaviorTreeComponent& Owne
 	USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(MyPawn);
 	if (ensure(AttributeComp))
 	{
-		AttributeComp->ApplyHealthChange(MyPawn, 10.0f);
+		AttributeComp->ApplyHealthChange(MyPawn, AttributeComp->GetHealthMax());
 		//float HealthGain = 10.0f;
 		//float RegenDelaay = 1.0f;
 			

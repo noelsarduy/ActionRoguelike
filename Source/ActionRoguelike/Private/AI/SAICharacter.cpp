@@ -7,6 +7,10 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
 #include "BrainComponent.h"
+#include "SWorldUserWidget.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "SPlayerState.h"
 
 
 ASAICharacter::ASAICharacter()
@@ -17,7 +21,13 @@ ASAICharacter::ASAICharacter()
 
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
 
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GetMesh()->SetGenerateOverlapEvents(true);
+
 	TimeToHitParamName = "TimeOfHit";
+
+	CreditValue = 5;
+	AttributeComp->TeamNumber = 1;
 }
 
 
@@ -35,15 +45,42 @@ void ASAICharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent
 
 	if (Delta < 0.0f)
 	{
-
-		if (InstigatorActor != this)
+		//Check Instigator's Team
+		USAttributeComponent* InstAttributeComp = USAttributeComponent::GetAttributes(InstigatorActor);
+		
+		if (InstigatorActor != this && InstAttributeComp)
 		{
+			if (InstAttributeComp->TeamNumber != this->AttributeComp->TeamNumber)
+			{
 			SetTargetActor(InstigatorActor);
+			}
+
 		}
-		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+
+		if (ActiveHealthBar == nullptr)
+		{
+			ActiveHealthBar = CreateWidget<USWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
+			if (ActiveHealthBar)
+			{
+				ActiveHealthBar->AttachedActor = this;
+				ActiveHealthBar->AddToViewport();
+			}
+		}
+
+		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
 
 		if (NewHealth <= 0.0f /*&& Delta < 0.0f*/)
 		{
+
+			// Give Credits to Instigator 
+			APawn*  Creditor = Cast<APawn>(InstigatorActor);
+			ASPlayerState* InstigatorState = Creditor->GetPlayerState<ASPlayerState>();
+			
+			if (InstigatorState != nullptr)
+			{
+				InstigatorState->ApplyCreditsChange(CreditValue);
+			}
+
 			// Stop BT
 			AAIController* AIC = Cast<AAIController>(GetController());
 			if (AIC)
@@ -55,6 +92,8 @@ void ASAICharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetCollisionProfileName("Ragdoll");
 
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetCharacterMovement()->DisableMovement();
 			// Allow BlackHole to consume
 			GetMesh()->SetSimulatePhysics(true);
 

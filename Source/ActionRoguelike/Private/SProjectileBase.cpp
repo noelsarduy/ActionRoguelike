@@ -25,7 +25,7 @@ ASProjectileBase::ASProjectileBase()
 	MoveComp->InitialSpeed = 8000;
 	
 	SoundComponent = CreateDefaultSubobject<UAudioComponent>("SoundComp");
-	SoundComponent->AutoAttachParent = RootComponent; 
+	SoundComponent->SetupAttachment(RootComponent); 
 	SoundComponent->bStopWhenOwnerDestroyed = true;
 
 }
