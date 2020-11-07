@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SPlayerState.h"
+#include "SActionComponent.h"
 
 
 ASAICharacter::ASAICharacter()
@@ -20,6 +21,8 @@ ASAICharacter::ASAICharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
+
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
@@ -74,12 +77,16 @@ void ASAICharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent
 
 			// Give Credits to Instigator 
 			APawn*  Creditor = Cast<APawn>(InstigatorActor);
-			ASPlayerState* InstigatorState = Creditor->GetPlayerState<ASPlayerState>();
-			
-			if (InstigatorState != nullptr)
+			if (Creditor != nullptr)
 			{
-				InstigatorState->ApplyCreditsChange(CreditValue);
+				ASPlayerState* InstigatorState = Creditor->GetPlayerState<ASPlayerState>(); 
+				
+				if (InstigatorState != nullptr)
+				{
+					InstigatorState->ApplyCreditsChange(CreditValue);
+				}
 			}
+			
 
 			// Stop BT
 			AAIController* AIC = Cast<AAIController>(GetController());
@@ -94,6 +101,7 @@ void ASAICharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent
 
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			GetCharacterMovement()->DisableMovement();
+			
 			// Allow BlackHole to consume
 			GetMesh()->SetSimulatePhysics(true);
 

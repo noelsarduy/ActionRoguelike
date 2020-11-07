@@ -11,6 +11,10 @@
 #include <Kismet/KismetMathLibrary.h>
 #include "SAttributeComponent.h"
 #include <GameFramework/PlayerController.h>
+#include <GameFramework/Character.h>
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "SActionComponent.h"
 
 
 // Sets default values
@@ -30,6 +34,8 @@ ASCharacter::ASCharacter()
 
 	AttributeComp = CreateDefaultSubobject<USAttributeComponent>("AttributeComp");
 
+	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
@@ -37,6 +43,9 @@ ASCharacter::ASCharacter()
 	// Random Jump Height
     float RandomVelocity = FMath::RandRange(400.0f, 1000.0f);
 	GetCharacterMovement()->JumpZVelocity = RandomVelocity;
+
+	TimeToHitParamName = "TimeToHit";
+
 }
 
 void ASCharacter::PostInitializeComponents()
@@ -51,6 +60,11 @@ void ASCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+FVector ASCharacter::GetPawnViewLocation() const
+{
+	return CameraComp->GetComponentLocation();
 }
 
 void ASCharacter::MoveForward(float Value)
@@ -78,116 +92,93 @@ void ASCharacter::MoveRight(float Value)
 }
 
 
-void ASCharacter::StartJump()
+void ASCharacter::SprintStart()
 {
-	bPressedJump = true;
-	
+	ActionComp->StartActionByName(this, "Sprint");
 }
 
-void ASCharacter::StopJump()
+
+void ASCharacter::SprintStop()
 {
-	bPressedJump = false;
+	ActionComp->StopActionByName(this, "Sprint");
 }
 
-void ASCharacter::ProjectileDirectionCalc(TSubclassOf<AActor>Projectile) 
-{
-	//Get Camera Manager
-	APlayerCameraManager* CurrentCamera = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
-	//Get Camera information for raycast & set up collision channel
-	FHitResult Hit;
-	
-	FVector CamLoc = CurrentCamera->GetCameraLocation();
-	FRotator CamRot = CurrentCamera->GetCameraRotation();
-	
-	//Raycast Length
-	FVector End = CamLoc + (CamRot.Vector() * 10000);
-	FVector HitEnd;
-	
-	FCollisionShape Shape;
-	Shape.SetSphere(10.0f);
+// void ASCharacter::StartJump()
+// {
+// 	bPressedJump = true;
+// }
+// 
+// void ASCharacter::StopJump()
+// {
+// 	bPressedJump = false;
+// }
 
-	//Raycast must ignore actor
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	FCollisionObjectQueryParams ObjParams;
-	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
-
-	bool bBlockingHit = GetWorld()->SweepSingleByObjectType(Hit, CamLoc, End, FQuat::Identity, ObjParams, Shape, Params);
-	
-	//If hit get vector to hit location
-	if (bBlockingHit) 
-	{
-		End = Hit.Location;
-	}
-	
-	//Debug Line
-	/*
-	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
-	DrawDebugLine(GetWorld(), CamLoc, End, LineColor, false, 10.0f, 0, 10.0f);
-	*/
-
-	//Set up Spawn Location and Rotation for Projectile
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, End);
-	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
-	
-	//Spawn Projectile
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	GetWorld()->SpawnActor<AActor>(Projectile, SpawnTM, SpawnParams);
-
-}
+// void ASCharacter::ProjectileDirectionCalc(TSubclassOf<AActor>Projectile) 
+// {
+// 	//Get Camera Manager
+// 	APlayerCameraManager* CurrentCamera = GetWorld()->GetFirstPlayerController()->PlayerCameraManager;
+// 	//Get Camera information for raycast & set up collision channel
+// 	FHitResult Hit;
+// 	
+// 	FVector CamLoc = CurrentCamera->GetCameraLocation();
+// 	FRotator CamRot = CurrentCamera->GetCameraRotation();
+// 	
+// 	//Raycast Length
+// 	FVector End = CamLoc + (CamRot.Vector() * 10000);
+// 	FVector HitEnd;
+// 	
+// 	FCollisionShape Shape;
+// 	Shape.SetSphere(10.0f);
+// 
+// 	//Raycast must ignore actor
+// 	FCollisionQueryParams Params;
+// 	Params.AddIgnoredActor(this);
+// 
+// 	FCollisionObjectQueryParams ObjParams;
+// 	ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+// 	ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+// 	ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+// 
+// 	bool bBlockingHit = GetWorld()->SweepSingleByObjectType(Hit, CamLoc, End, FQuat::Identity, ObjParams, Shape, Params);
+// 	
+// 	//If hit get vector to hit location
+// 	if (bBlockingHit) 
+// 	{
+// 		End = Hit.Location;
+// 	}
+// 
+// 	//Set up Spawn Location and Rotation for Projectile
+// 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+// 	FRotator FinalRot = UKismetMathLibrary::FindLookAtRotation(HandLocation, End);
+// 	FTransform SpawnTM = FTransform(FinalRot, HandLocation);
+// 	
+// 	//Spawn Projectile
+// 	FActorSpawnParameters SpawnParams;
+// 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+// 	SpawnParams.Instigator = this;
+// 
+// 	GetWorld()->SpawnActor<AActor>(Projectile, SpawnTM, SpawnParams);
+// 
+// }
 
 
 void ASCharacter::PrimaryAttack()
 {
-	
-	PlayAnimMontage(AttackAnim);
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.18f);
-
-	
-	//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack)
+	ActionComp->StartActionByName(this, "PrimaryAttack");
 }
 
-
-
-void ASCharacter::PrimaryAttack_TimeElapsed()
-{	
-
-	ProjectileDirectionCalc(ProjectileClass);
-
-}
 
 void ASCharacter::BlackHoleAbility() 
 {
-	PlayAnimMontage(BlackHoleAnim);
-	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAbility, this, &ASCharacter::BlackHoleAbility_TimeElapsed, 0.18f);
+	ActionComp->StartActionByName(this, "BlackHoleAbility");
 }
 
-void ASCharacter::BlackHoleAbility_TimeElapsed()
-{
-
-	ProjectileDirectionCalc(BlackHoleProjectileClass);
-
-}
 
 void ASCharacter::Dash()
 {
-	PlayAnimMontage(DashAnim);
-	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, 0.18f);
+	ActionComp->StartActionByName(this, "Dash");
 }
 
-void ASCharacter::Dash_TimeElapsed()
-{
-
-	ProjectileDirectionCalc(DashProjectileClass);
-
-}
 
 void ASCharacter::PrimaryInteract()
 {
@@ -201,9 +192,7 @@ void ASCharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent* 
 {
 	if (Delta < 0.0f)
 	{
-		UActorComponent* Comp = GetComponentByClass(USkeletalMeshComponent::StaticClass());
-		USkeletalMeshComponent* MeshComp = Cast<USkeletalMeshComponent>(Comp);
-		MeshComp->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 		//FVector InputColor = 1,1,1;
 		//MeshComp->SetVectorParameterValueOnMaterials("Color", );
 	}
@@ -218,16 +207,15 @@ void ASCharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent* 
 
 void ASCharacter::Death_TimeElapsed()
 {
-
-	GetMesh()->SetCollisionProfileName("Ragdoll");
+	//GetMesh()->SetSimulatePhysics(true);
+	//GetMesh()->SetCollisionProfileName("Ragdoll");
+	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//GetCharacterMovement()->DisableMovement();
 
 }
 
 
-FVector ASCharacter::GetPawnViewLocation() const
-{
-	return CameraComp->GetComponentLocation();
-}
 
 /*void ASCharacter::Sprint(*/
 
@@ -260,6 +248,9 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	// Player Ability
 	PlayerInputComponent->BindAction("BlackHoleAbility", IE_Pressed, this, &ASCharacter::BlackHoleAbility);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
+	//Sprint Input Component
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &ASCharacter::SprintStart);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &ASCharacter::SprintStop);
 }
 
 void ASCharacter::HealSelf(float Amount /* = 100 */)

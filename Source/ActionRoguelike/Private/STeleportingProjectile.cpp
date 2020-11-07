@@ -23,7 +23,6 @@ void ASTeleportingProjectile::BeginPlay()
 	//Explode & Teleport
 	GetWorldTimerManager().SetTimer(TimerHandle_Begin, this, &ASTeleportingProjectile::Explode, DetonateDelay);
 
-
 }
 
 

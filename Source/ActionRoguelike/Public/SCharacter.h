@@ -4,12 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "SActionComponent.h"
 #include "SCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
 class USInteractionComponent;
+class UAnimMontage;
 class USAttributeComponent;
+class UParticleSystem;
+class USActionComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
@@ -18,27 +22,7 @@ class ACTIONROGUELIKE_API ASCharacter : public ACharacter
 
 protected:
 	
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> ProjectileClass;
-	
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim;
 
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> BlackHoleProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* BlackHoleAnim;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> DashProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* DashAnim;
-
-	FTimerHandle TimerHandle_PrimaryAttack;
-	FTimerHandle TimerHandle_BlackHoleAbility;
-	FTimerHandle TimerHandle_Dash;
 	FTimerHandle TimerHandle_Death;
 	
 	
@@ -60,6 +44,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	USAttributeComponent* AttributeComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	USActionComponent* ActionComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
+
 	UFUNCTION()
 	void OnHealthChange(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
 
@@ -73,22 +63,21 @@ protected:
 	
 	void MoveRight(float Value);
 
-	void ProjectileDirectionCalc(TSubclassOf<AActor> Projectile);
+	void SprintStart();
+
+	void SprintStop();
+
+	/*void ProjectileDirectionCalc(TSubclassOf<AActor> Projectile);*/
 
 	void PrimaryAttack();
 
-	void PrimaryAttack_TimeElapsed();
 	
 	void PrimaryInteract();
 
 	void BlackHoleAbility();
 
-	void BlackHoleAbility_TimeElapsed();
-
 	void Dash();
 
-	void Dash_TimeElapsed();
-	
 	void Death_TimeElapsed();
 
 	virtual FVector GetPawnViewLocation() const override;
@@ -99,12 +88,13 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
 	UFUNCTION(Exec)
 	void HealSelf(float Amount = 100);
 	
-	UFUNCTION()
-	void StartJump();
-	
-	UFUNCTION()
-	void StopJump();
+// 	UFUNCTION()
+// 	void StartJump();
+// 	
+// 	UFUNCTION()
+// 	void StopJump();
 };

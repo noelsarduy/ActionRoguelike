@@ -6,6 +6,9 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
+#include "Camera/CameraShake.h"
 
 // Sets default values
 ASProjectileBase::ASProjectileBase()
@@ -28,6 +31,11 @@ ASProjectileBase::ASProjectileBase()
 	SoundComponent->SetupAttachment(RootComponent); 
 	SoundComponent->bStopWhenOwnerDestroyed = true;
 
+	ImpactShakeInnerRadius = 0.0f;
+	ImpactShakeOuterRadius = 1500.0f;
+
+	SetReplicates(true);
+
 }
 
 // Called when the game starts or when spawned
@@ -44,6 +52,7 @@ void ASProjectileBase::Explode_Implementation()
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), GetActorRotation());
+		UGameplayStatics::PlayWorldCameraShake(this, ImpactShake, GetActorLocation(), ImpactShakeInnerRadius, ImpactShakeOuterRadius); 
 		Destroy();
 	}
 }
@@ -54,6 +63,5 @@ void ASProjectileBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	SphereComp->IgnoreActorWhenMoving(GetInstigator(), true);
-
-}
+} 
 

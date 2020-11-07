@@ -13,6 +13,10 @@ USAttributeComponent::USAttributeComponent()
 {
 	HealthMax = 100;
 	Health = HealthMax;
+
+	Rage = 0.0f;
+	RageMax = 100.0f;
+	RageMultiplier = .25f;
 	TeamNumber = 0;
 }
 
@@ -42,6 +46,11 @@ float USAttributeComponent::GetHealth() const
 	return Health;
 }
 
+float USAttributeComponent::GetRage() const
+{
+	return Rage;
+}
+
 bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
 {
 	if (!GetOwner()->CanBeDamaged())
@@ -62,6 +71,10 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 	float ActualDelta = Health - PrevHealth;
 	OnHealthChange.Broadcast(InstigatorActor, this, Health, ActualDelta);
 
+	if (Delta < 0.0f && Health > 0.0f)
+	{
+		ApplyRage(InstigatorActor, ActualDelta * RageMultiplier);
+	}
 	if (ActualDelta < 0.0f && Health == 0.0f)
 	{
 		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
@@ -69,6 +82,21 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 		{
 			GM->OnActorKilled(GetOwner(), InstigatorActor);
 		}
+	}
+
+	return ActualDelta != 0;
+}
+
+bool USAttributeComponent::ApplyRage(AActor* InstigatorActor, float Delta)
+{
+	float OldRage = Rage;
+
+	Rage = FMath::Clamp(Rage + Delta, 0.0f, RageMax);
+
+	float ActualDelta = Rage - OldRage;
+	if (ActualDelta != 0.0f)
+	{
+		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
 	}
 
 	return ActualDelta != 0;

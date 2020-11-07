@@ -5,6 +5,10 @@
 #include "SAttributeComponent.h"
 #include "Components/SphereComponent.h"
 #include "SGameplayFunctionLibrary.h"
+#include "SActionComponent.h"
+#include "SProjectileBase.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "SActionEffect.h"
 
 
 ASMagicProjectile::ASMagicProjectile()
@@ -13,6 +17,8 @@ ASMagicProjectile::ASMagicProjectile()
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASMagicProjectile::OnActorOverlap);
 
 	DamageAmount = 20.0f;
+
+	Reflected = false;
 }
 
 
@@ -20,7 +26,19 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		/*USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
+		USActionComponent* ActionComp = Cast<USActionComponent>(OtherActor->GetComponentByClass(USActionComponent::StaticClass()));
+		if (ActionComp && ActionComp->ActiveGameplayTags.HasTag(ParryTag))
+		{
+			MoveComp->Velocity = -(MoveComp->Velocity);
+
+			SetInstigator(Cast<APawn>(OtherActor));
+			return;
+
+			Reflected = true;
+			
+		}
+		 
+		 /*USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(OtherActor->GetComponentByClass(USAttributeComponent::StaticClass()));
 		if (AttributeComp)
 		{
 			// minus in front of DamageAmount to apply the change as damage, not healing
@@ -33,6 +51,11 @@ void ASMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		if (USGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
 		{
 			Explode();
+			if (ActionComp)
+			{
+				ActionComp->AddAction(GetInstigator(),BurningActionClass);
+			}
+			
 	 	}
 	}
 }

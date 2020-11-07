@@ -4,6 +4,8 @@
 #include "SInteractionComponent.h"
 #include "SGameplayInterface.h"
 #include <DrawDebugHelpers.h>
+#include <Blueprint/UserWidget.h>
+#include "SWorldUserWidget.h"
 
 static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionDebugDraw"), false, TEXT("Enable Debug Lines for Interact Component."), ECVF_Cheat);
 
@@ -11,11 +13,11 @@ static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("su.InteractionD
 // Sets default values for this component's properties
 USInteractionComponent::USInteractionComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	TraceRadius = 30.0f;
+	TraceDistance = 500.0f;
+	CollisionChannel = ECC_WorldDynamic;
 }
 
 
@@ -34,10 +36,10 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	FindBestInteractable();
 }
 
-void USInteractionComponent::PrimaryInteract()
+void USInteractionComponent::FindBestInteractable()
 {
 	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
 
@@ -66,22 +68,50 @@ void USInteractionComponent::PrimaryInteract()
 	
 	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
 	
+	// Clear ref before trying to fill
+	FocusActor = nullptr;
+
 	for (FHitResult Hit : Hits)
 	{
 		if (bDebugDraw)
 		{
 			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, LineColor, false, 2.0f);
 		}
+
 		AActor* HitActor = Hit.GetActor();
 		if (HitActor)
 		{
 			if (HitActor->Implements<USGameplayInterface>())
 			{
-				APawn* MyPawn = Cast<APawn>(MyOwner);
 				
-				ISGameplayInterface::Execute_Interact(HitActor, MyPawn);
+				FocusActor = HitActor;
 				break;
 			}
+		}
+	}
+
+	if (FocusActor)
+	{
+		if (DefaultWidgetInstance == nullptr && ensure(DefaultWidgetClass))
+		{
+			DefaultWidgetInstance = CreateWidget<USWorldUserWidget>(GetWorld(), DefaultWidgetClass);
+		}
+
+		if (DefaultWidgetInstance)
+		{
+			DefaultWidgetInstance->AttachedActor = FocusActor;
+
+			if (!DefaultWidgetInstance->IsInViewport())
+			{
+				DefaultWidgetInstance->AddToViewport();
+			}
+		}
+	}
+	else
+	{
+		if (DefaultWidgetInstance)
+		{
+			DefaultWidgetInstance->RemoveFromParent();
 		}
 	}
 
@@ -89,5 +119,19 @@ void USInteractionComponent::PrimaryInteract()
 	{
 		DrawDebugLine(GetWorld(), EyeLocation, End, LineColor, false, 2.0f, 0, 2.0f);
 	}
+}
+
+
+void USInteractionComponent::PrimaryInteract()
+{
+	if (FocusActor == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "No Focus Actor to interact.");
+		return;
+	}
+	
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+
+	ISGameplayInterface::Execute_Interact(FocusActor, MyPawn);
 }
 

@@ -22,6 +22,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Effects");
 	UParticleSystem* ImpactVFX;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	TSubclassOf<UCameraShake> ImpactShake;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	float ImpactShakeInnerRadius;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+	float ImpactShakeOuterRadius;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	USphereComponent* SphereComp;
 
@@ -34,7 +43,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	UAudioComponent* SoundComponent;
 	
-	UPROPERTY(EditDefaultsOnly, Category = "Components");
+	UPROPERTY(EditDefaultsOnly, Category = "Effects");
 	USoundBase* ImpactSound;
 
 	//'virtual' so we can override this in child-classes
