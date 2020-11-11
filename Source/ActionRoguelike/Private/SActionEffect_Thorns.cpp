@@ -23,7 +23,7 @@ void USActionEffect_Thorns::StartAction_Implementation(AActor* Instigator)
 	USAttributeComponent* Attributes = USAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner());
 	if (Attributes)
 	{
-		Attributes->OnHealthChange.AddDynamic(this, &USActionEffect_Thorns::OnHealthChange);
+		Attributes->OnHealthChanged.AddDynamic(this, &USActionEffect_Thorns::OnHealthChange);
 	}
 }
 
@@ -34,7 +34,7 @@ void USActionEffect_Thorns::StopAction_Implementation(AActor* Instigator)
 	USAttributeComponent* Attributes = USAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner());
 	if (Attributes)
 	{
-		Attributes->OnHealthChange.RemoveDynamic(this, &USActionEffect_Thorns::OnHealthChange);
+		Attributes->OnHealthChanged.RemoveDynamic(this, &USActionEffect_Thorns::OnHealthChange);
 	}
 }
 

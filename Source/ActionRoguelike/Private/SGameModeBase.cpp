@@ -11,6 +11,11 @@
 #include "DrawDebugHelpers.h"
 #include "SCharacter.h"
 #include "SPlayerState.h"
+/*#include "SSaveGame.h"*/
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/GameStateBase.h"
+#include "SGameplayInterface.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
 
 static TAutoConsoleVariable<bool>CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable Spawning of bots via timer."), ECVF_Cheat);
@@ -45,6 +50,7 @@ void ASGameModeBase::StartPlay()
 		}
 	}
 }
+
 
 void ASGameModeBase::KillAll()
 {

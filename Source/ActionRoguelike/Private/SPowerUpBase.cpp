@@ -13,6 +13,9 @@ ASPowerUpBase::ASPowerUpBase()
 
 	RespawnTime = 10.0f;
 
+	bIsShown = true;
+	SetReplicates(true);
+	
 }
 
 // Called when the game starts or when spawned
@@ -35,9 +38,21 @@ void ASPowerUpBase::Cooldown()
 
 void ASPowerUpBase::PowerUpState(bool bIsActive)
 {
-	SetActorEnableCollision(bIsActive);
-
-	//Render visible or invisible
-	RootComponent->SetVisibility(bIsActive, true);
+	bIsShown = bIsActive;
+	OnRep_IsShown();
 }
 
+void ASPowerUpBase::OnRep_IsShown()
+{
+	SetActorEnableCollision(bIsShown);
+
+	//Render visible or invisible
+	RootComponent->SetVisibility(bIsShown, true);
+}
+
+void ASPowerUpBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPowerUpBase, bIsShown);
+}

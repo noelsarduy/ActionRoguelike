@@ -3,6 +3,7 @@
 
 #include "SPlayerState.h"
 #include <Math/UnrealMathUtility.h>
+#include "Net/UnrealNetwork.h"
 
 ASPlayerState::ASPlayerState()
 {
@@ -22,11 +23,24 @@ bool ASPlayerState::ApplyCreditsChange(int32 Delta)
 
 	int32 PrevCredits = Credits;
 
-	Credits = FMath::Clamp(Credits + Delta, 0, MaxCredits);
+	Credits = FMath::Max(Credits + Delta, 0/*, MaxCredits*/);
 	int32 ActualDelta = Credits - PrevCredits;
 
-	OnCreditsChanged.Broadcast(this, Credits, ActualDelta);
+	OnRep_Credits(PrevCredits/*, ActualDelta*/);
 
 	return ActualDelta != 0;
 }
+
+void ASPlayerState::OnRep_Credits(int32 PrevCredits)
+{
+	OnCreditsChanged.Broadcast(this, Credits, Credits - PrevCredits);
+}
+
+void ASPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASPlayerState, Credits);
+}
+
 

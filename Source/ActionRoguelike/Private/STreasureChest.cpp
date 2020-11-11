@@ -2,7 +2,8 @@
 
 
 #include "STreasureChest.h"
-
+#include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ASTreasureChest::ASTreasureChest()
@@ -19,8 +20,23 @@ ASTreasureChest::ASTreasureChest()
 	TargetPitch = 120;
 }
 
-void ASTreasureChest::Interact_Implementation(APawn* InstigatorPawn)
+
+void ASTreasureChest::OnRep_LidOpened()
 {
-	LidMesh->SetRelativeRotation(FRotator(TargetPitch, 0 ,0));
+	float CurrPitch = bLidOpened ? TargetPitch : 0.0f;
+	LidMesh->SetRelativeRotation(FRotator(CurrPitch, 0, 0));
 }
 
+void ASTreasureChest::Interact_Implementation(APawn* InstigatorPawn)
+{
+	bLidOpened = !bLidOpened;
+	OnRep_LidOpened();
+}
+
+
+void ASTreasureChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASTreasureChest, bLidOpened);
+}

@@ -23,8 +23,15 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Powerup")
 	float RespawnTime;
+
 	FTimerHandle Respawn;
-	
+
+	UPROPERTY(ReplicatedUsing = "OnRep_IsShown")
+	bool bIsShown;
+
+	UFUNCTION()
+	void OnRep_IsShown();
+
 	void Activate();
 	void Cooldown();
 	void PowerUpState(bool bIsReady);

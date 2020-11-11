@@ -15,17 +15,17 @@
 #include <TimerManager.h>
 #include <GameFramework/Actor.h>
 #include <Components/CapsuleComponent.h>
+#include <Containers/Array.h>
+#include <Math/UnrealMathUtility.h>
 
 // Sets default values
 ASSingularity::ASSingularity()
 {
 	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
-	SphereComp->SetSphereRadius(600.0f);
+	SphereComp->SetSphereRadius(800.0f);
 	
 	//SphereComp->SetCollisionProfileName("RadialEffects");
 	RootComponent = SphereComp;
-
-	//SphereComp->OnComponentDestroyed(true).AddDynamic(this, &ASSingularity::OnActorEndOverlap);
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
 	EffectComp->SetupAttachment(RootComponent);
@@ -38,13 +38,14 @@ ASSingularity::ASSingularity()
 	PullComponent->SetupAttachment(SphereComp);
 	PullComponent->ForceStrength = -80000.0f;
 	PullComponent->Radius = 600.0f;
-	
 	PullComponent->bIgnoreOwningActor;	
+
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ASSingularity::OnActorOverlap);
 	SphereComp->OnComponentEndOverlap.AddDynamic(this, &ASSingularity::OnActorEndOverlap);
 	
 	SingularityDuration = 6.0f;
 
+	PrimaryActorTick.bCanEverTick = true;
 	bUpdatePosition = true;
 }
 
@@ -55,11 +56,9 @@ void ASSingularity::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	
 	DrawDebugSphere(GetWorld(), OtherActor->GetActorLocation(), 20, 32, FColor::Red, false, 2.0f);
 	if (OtherActor && OtherActor != GetInstigator())
-	{
-		
+	{	
 		if (OtherActor->IsA(ASAICharacter::StaticClass()))
 		{	
-			DrawDebugSphere(GetWorld(), OtherActor->GetActorLocation(), 20, 32, FColor::Green, false, 2.0f);
 			
 			ASAICharacter* TargetPawn = Cast<ASAICharacter>(OtherActor);
 			
@@ -83,12 +82,15 @@ void ASSingularity::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 
 			if (MeshComp)
 			{
-				FTimerHandle AnimationDelayHandle;
-				float AnimDelay = 3.0f;
-
-				//MeshComp->PlayAnimation(StasisAnim_1, false);
+// 				FTimerHandle AnimationDelayHandle;
+// 				float AnimDelay = 3.0f;
+// 
+//				TargetPawn->PlayAnimMontage(StasisAnim_1);
 				MeshComp->SetAllBodiesSimulatePhysics(true);
 				MeshComp->SetCollisionProfileName("Ragdoll");
+				//TargetPawn->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				
+				Victims.Add(OtherActor);
 			}	
 			
 		}
@@ -101,9 +103,6 @@ void ASSingularity::EndSingularity_Implementation()
 	PullComponent->Deactivate();
 
 	bUpdatePosition = false;
-
-	TArray<AActor*> Victims;
-	SphereComp->GetOverlappingActors(Victims, APawn::StaticClass());
 
 	for (AActor* Victim: Victims)
 	{
@@ -118,31 +117,32 @@ void ASSingularity::EndSingularity_Implementation()
 			 	{
 					USAttributeComponent* InstAttributeComp = USAttributeComponent::GetAttributes(Victim);
 					if (InstAttributeComp->IsAlive())
-					{ 
+					{					
 						FVector DefaultLocation = FVector(0.0f, 0.0f, -90.0f);
 						FRotator DefaultRotation = FRotator(0.0f, -90.0f, 0.0f);
 
 						UCapsuleComponent* TargetCapsule = TargetPawn->GetCapsuleComponent();
 
-						FVector WorldLocation = MeshComp->GetSocketLocation("pelvis");
-					
-						FRotator WorldRotation = MeshComp->GetComponentRotation();
-						FVector ModifiedRotation = WorldRotation.Vector();
-						ModifiedRotation[0] = 0;
-						ModifiedRotation[2] = 0;
-
-						WorldRotation = ModifiedRotation.Rotation();
-
-						MeshComp->SetAllBodiesSimulatePhysics(false);
-						MeshComp->SetCollisionProfileName("None");
 						
-						TargetCapsule->SetWorldLocation(WorldLocation, false, nullptr, ETeleportType::TeleportPhysics);
-						TargetCapsule->SetWorldRotation(WorldRotation, false, nullptr, ETeleportType::TeleportPhysics);
+					
+ 						FRotator WorldRotation = TargetCapsule->GetComponentRotation();/*MeshComp->GetSocketRotation("pelvis");*/
+ 						FVector ModifiedRotation = WorldRotation.Vector();
+ 						ModifiedRotation[0] = 0;
+ 						ModifiedRotation[2] = 0;
+ 
+ 						WorldRotation = ModifiedRotation.Rotation();
 
-						MeshComp->AttachToComponent(TargetCapsule, FAttachmentTransformRules::SnapToTargetIncludingScale);
+ 						TargetCapsule->SetWorldLocation(TargetCapsule->GetComponentLocation() + 90, false);
+ 						TargetCapsule->SetWorldRotation(WorldRotation, false);
+						
+ 						MeshComp->SetAllBodiesSimulatePhysics(false);
+ 						MeshComp->SetCollisionProfileName("None");
+						//MeshComp->AttachToComponent(TargetCapsule, FAttachmentTransformRules::SnapToTargetIncludingScale);
 						
 						MeshComp->SetRelativeLocation(DefaultLocation);
 						MeshComp->SetRelativeRotation(DefaultRotation);
+
+						//TargetPawn->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 						
 						//MeshComp->PlayAnimation(StasisAnim_2, false);
 					
@@ -152,7 +152,6 @@ void ASSingularity::EndSingularity_Implementation()
 						{
 							AIC->GetBrainComponent()->StartLogic();
 						}
-					//TargetPawn->GetCharacterMovement()->ResetMoveState();	
 					}
 				}
 			
@@ -179,27 +178,28 @@ void ASSingularity::OnActorEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 					USAttributeComponent* InstAttributeComp = USAttributeComponent::GetAttributes(OtherActor);
 					if (InstAttributeComp->IsAlive())
 					{
+// 						MeshComp->SetAllBodiesSimulatePhysics(false);
+						MeshComp->SetAllBodiesBelowSimulatePhysics("pelvis", true);
+						MeshComp->SetCollisionProfileName("None");
 						FVector DefaultLocation = FVector(0.0f, 0.0f, -90.0f);
 						FRotator DefaultRotation = FRotator(0.0f, -90.0f, 0.0f);
 
 						UCapsuleComponent* TargetCapsule = TargetPawn->GetCapsuleComponent();
+						
+// 						FRotator WorldRotation = MeshComp->GetSocketRotation("pelvis");
+// 						FVector ModifiedRotation = WorldRotation.Vector();
+// 						ModifiedRotation[0] = 0;
+// 						ModifiedRotation[2] = 0;
+// 
+// 						WorldRotation = ModifiedRotation.Rotation();
+// 
+// 						
+// 						
+// 						FVector WorldLocation = MeshComp->GetSocketLocation("pelvis");
+// 						TargetCapsule->SetWorldLocation(WorldLocation, false, nullptr, ETeleportType::TeleportPhysics);
+// 						TargetCapsule->SetWorldRotation(WorldRotation, false, nullptr, ETeleportType::TeleportPhysics);
 
-						FVector WorldLocation = MeshComp->GetSocketLocation("pelvis");
-
-						FRotator WorldRotation = MeshComp->GetComponentRotation();
-						FVector ModifiedRotation = WorldRotation.Vector();
-						ModifiedRotation[0] = 0;
-						ModifiedRotation[2] = 0;
-
-						WorldRotation = ModifiedRotation.Rotation();
-
-						MeshComp->SetAllBodiesSimulatePhysics(false);
-						MeshComp->SetCollisionProfileName("None");
-
-						TargetCapsule->SetWorldLocation(WorldLocation, false, nullptr, ETeleportType::TeleportPhysics);
-						TargetCapsule->SetWorldRotation(WorldRotation, false, nullptr, ETeleportType::TeleportPhysics);
-
-						MeshComp->AttachToComponent(TargetCapsule, FAttachmentTransformRules::SnapToTargetIncludingScale);
+						MeshComp->AttachToComponent(TargetCapsule, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 						MeshComp->SetRelativeLocation(DefaultLocation);
 						MeshComp->SetRelativeRotation(DefaultRotation);
@@ -212,7 +212,7 @@ void ASSingularity::OnActorEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 						{
 							AIC->GetBrainComponent()->StartLogic();
 						}
-						//TargetPawn->GetCharacterMovement()->ResetMoveState();	
+						Victims.Remove(OtherActor);
 					}
 				}
 			
@@ -228,35 +228,23 @@ void ASSingularity::BeginPlay()
 	
 }
 
-//Not ticking for some reason
 void ASSingularity::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	if(bUpdatePosition)
 	{
-		//DrawDebugSphere(GetWorld(), GetActorLocation(), 20, 32, FColor::Green, false, 2.0f);
-
-		TArray<AActor*> Victims;
-		SphereComp->GetOverlappingActors(Victims, ASAICharacter::StaticClass());
-
 		for (AActor* Victim : Victims)
 		{
-			if (Victim != GetInstigator())
+			USAttributeComponent* InstAttributeComp = USAttributeComponent::GetAttributes(Victim);
+			if (Victim != GetInstigator() && InstAttributeComp->IsAlive())
 			{
 				ASAICharacter* TargetPawn = Cast<ASAICharacter>(Victim);
-
 				USkeletalMeshComponent* MeshComp = TargetPawn->GetMesh();
-	
-				FVector Location = MeshComp->GetSocketLocation("pelvis");
-				FRotator Rotation = MeshComp->GetComponentRotation();
-
 				UCapsuleComponent* TargetCapsule = TargetPawn->GetCapsuleComponent();
 						
-				TargetCapsule->SetWorldLocation(Location, true);
-				TargetCapsule->SetWorldRotation(Rotation, true);
-
-				DrawDebugSphere(GetWorld(), TargetCapsule->GetComponentLocation(), 20, 32, FColor::Green, false, 2.0f);
+				TargetCapsule->SetWorldLocation(MeshComp->GetSocketLocation("pelvis"), false);
+				TargetCapsule->SetWorldRotation(MeshComp->GetSocketRotation("pelvis"), false);
 
 			}
 		}

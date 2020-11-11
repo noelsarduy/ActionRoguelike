@@ -19,19 +19,26 @@ class ACTIONROGUELIKE_API ASPlayerState : public APlayerState
 
 protected:
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Credits")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing="OnRep_Credits", Category = "Credits")
 	int32 Credits;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Credits")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, ReplicatedUsing ="OnRep_Credits", Category = "Credits")
 	int32 MaxCredits;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,/* ReplicatedUsing = "OnRep_Kills", */Category = "Stats")
 	int32 Kills;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stats")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,/* ReplicatedUsing = "OnRep_Deaths", */Category = "Stats")
 	int32 Deaths;
 
+	UFUNCTION()
+	void OnRep_Credits(int32 PrevCredits);
 
+// 	UFUNCTION()
+// 	void OnRep_Credits(int32 PrevDeaths);
+// 	
+// 	UFUNCTION()
+// 	void OnRep_Credits(int32 PrevKills);
 
 public:
 

@@ -4,6 +4,7 @@
 #include "SAttributeComponent.h"
 #include <Kismet/GameplayStatics.h>
 #include "SGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 
@@ -14,10 +15,13 @@ USAttributeComponent::USAttributeComponent()
 	HealthMax = 100;
 	Health = HealthMax;
 
+
 	Rage = 0.0f;
 	RageMax = 100.0f;
 	RageMultiplier = .25f;
 	TeamNumber = 0;
+	
+	SetIsReplicatedByDefault(true);
 }
 
 
@@ -68,13 +72,16 @@ bool USAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delt
 	float PrevHealth = Health;
 
 	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
+	
 	float ActualDelta = Health - PrevHealth;
-	OnHealthChange.Broadcast(InstigatorActor, this, Health, ActualDelta);
+	
+	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
 
-	if (Delta < 0.0f && Health > 0.0f)
+	if (ActualDelta != 0.0f) 
 	{
-		ApplyRage(InstigatorActor, ActualDelta * RageMultiplier);
+		MulticastHealthChange(InstigatorActor, Health, ActualDelta);
 	}
+
 	if (ActualDelta < 0.0f && Health == 0.0f)
 	{
 		ASGameModeBase* GM = GetWorld()->GetAuthGameMode<ASGameModeBase>();
@@ -102,18 +109,6 @@ bool USAttributeComponent::ApplyRage(AActor* InstigatorActor, float Delta)
 	return ActualDelta != 0;
 }
 
-/*bool USAttributeComponent::ApplyGradualHealthChange(AActor* InstigatorActor, float Delta, float HealingPeriod)
-{
-	FTimerHandle HealingTimer;
-	while (Health < HealthMax)
-	{
-		GetWorldTimerManager().SetTimer(HealingTimer, this, &USAttributeComponent::ApplyHealthChange(InstigatorActor, Delta), HealingPeriod);
-		GetWorldTimerManager().ClearTimer(HealingTimer);
-	}
-	
-	return true;
-}*/
-
 USAttributeComponent* USAttributeComponent::GetAttributes(AActor* FromActor)
 {
 	if (FromActor)
@@ -135,3 +130,24 @@ bool USAttributeComponent::IsActorAlive(AActor* Actor)
 	return false;
 }
 
+void USAttributeComponent::MulticastHealthChange_Implementation(AActor* InstigatorActor, float NewHealth, float Delta)
+{
+	OnHealthChanged.Broadcast(InstigatorActor, this, NewHealth, Delta);
+}
+
+void USAttributeComponent::MulticastRageChange_Implementation(AActor* InstigatorActor, float NewRage, float Delta)
+{
+	OnRageChanged.Broadcast(InstigatorActor, this, NewRage, Delta);
+}
+
+
+void USAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USAttributeComponent, Health);
+	DOREPLIFETIME(USAttributeComponent, HealthMax);
+	DOREPLIFETIME(USAttributeComponent, Rage);
+	DOREPLIFETIME(USAttributeComponent, RageMax);
+	DOREPLIFETIME(USAttributeComponent, TeamNumber);
+}

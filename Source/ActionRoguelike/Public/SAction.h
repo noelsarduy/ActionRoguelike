@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+//Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -19,6 +19,9 @@ class ACTIONROGUELIKE_API USAction : public UObject
 
 protected:
 	
+	UPROPERTY(Replicated)
+	USActionComponent* ActionComp;
+
 	// Grabs However the action belongs to
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	USActionComponent* GetOwningComponent() const;
@@ -31,9 +34,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer BlockedTags;
 
+	UPROPERTY(ReplicatedUsing = "OnRep_IsRunning")
 	bool bIsRunning;
 
+	UFUNCTION()
+	void OnRep_IsRunning();
+
 public:
+	
+	void Initialize(USActionComponent* NewActionComp);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	bool bAutoStart;
@@ -55,5 +64,9 @@ public:
 	FName ActionName;
 
 	UWorld* GetWorld() const override;
+	
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };
-

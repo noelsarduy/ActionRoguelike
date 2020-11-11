@@ -52,7 +52,7 @@ void ASCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	AttributeComp->OnHealthChange.AddDynamic(this, &ASCharacter::OnHealthChange);
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ASCharacter::OnHealthChange);
 }
 
 // Called when the game starts or when spawned
@@ -195,6 +195,10 @@ void ASCharacter::OnHealthChange(AActor* InstigatorActor, USAttributeComponent* 
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 		//FVector InputColor = 1,1,1;
 		//MeshComp->SetVectorParameterValueOnMaterials("Color", );
+		
+		// Rage added equal to damage received (Abs to turn into positive rage number)
+		float RageDelta = FMath::Abs(Delta);
+		AttributeComp->ApplyRage(InstigatorActor, RageDelta);
 	}
 
 	if (NewHealth <= 0.0f && Delta < 0.0f)

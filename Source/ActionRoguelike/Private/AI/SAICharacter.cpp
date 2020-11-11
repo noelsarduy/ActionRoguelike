@@ -39,7 +39,7 @@ void ASAICharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &ASAICharacter::OnPawnSeen);
-	AttributeComp->OnHealthChange.AddDynamic(this, &ASAICharacter::OnHealthChange);
+	AttributeComp->OnHealthChanged.AddDynamic(this, &ASAICharacter::OnHealthChange);
 }
 
 
