@@ -30,7 +30,7 @@ void USActionEffect_Thorns::StartAction_Implementation(AActor* Instigator)
 void USActionEffect_Thorns::StopAction_Implementation(AActor* Instigator)
 {
 	Super::StopAction_Implementation(Instigator);
-
+	//Stop Listening
 	USAttributeComponent* Attributes = USAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner());
 	if (Attributes)
 	{

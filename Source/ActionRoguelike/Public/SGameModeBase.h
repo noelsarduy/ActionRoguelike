@@ -10,6 +10,7 @@
 class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 class UCurveFloat;
+class USAffinityFactionComponent;
 /**
  * 
  */
@@ -68,9 +69,29 @@ protected:
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
 
+	UPROPERTY(EditAnywhere, Category = "Factions")
+	TSet<TSubclassOf<USFactions>> AssignableGameFactions;
+
+	UPROPERTY(EditAnywhere, Category = "Factions")
+	TSet<USFactions*> GameFactions;
+;
 public:
+	UFUNCTION(BlueprintCallable, Category = "Faction Affinity")
+	void SetAffinityBetweenFactions(USFactions* Faction_1, USFactions* Faction_2, int32 Delta);
+
+	UFUNCTION(BlueprintCallable, Category = "Faction Affinity")
+	TSet<USFactions*> GetGameFactions();
+// 
+// 	UFUNCTION(BlueprintCallable, Category = "Actions")
+// 	void AddFaction(TSubclassOf<USFactions> Faction);
+// 
+// 	UFUNCTION(BlueprintCallable, Category = "Actions")
+// 	void RemoveFaction(USFactions* FactionToRemove);
+
 	
 	virtual void OnActorKilled(AActor* VictimActor, AActor* Killer);
+
+
 	
 	ASGameModeBase();
 	

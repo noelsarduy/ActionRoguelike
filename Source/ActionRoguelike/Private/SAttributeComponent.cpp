@@ -19,7 +19,7 @@ USAttributeComponent::USAttributeComponent()
 	Rage = 0.0f;
 	RageMax = 100.0f;
 	RageMultiplier = .25f;
-	TeamNumber = 0;
+	/*TeamNumber = 0;*/
 	
 	SetIsReplicatedByDefault(true);
 }

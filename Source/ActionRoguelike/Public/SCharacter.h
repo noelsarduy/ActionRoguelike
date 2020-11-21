@@ -14,6 +14,7 @@ class UAnimMontage;
 class USAttributeComponent;
 class UParticleSystem;
 class USActionComponent;
+class USAffinityFactionComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASCharacter : public ACharacter
@@ -46,6 +47,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	USActionComponent* ActionComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	USAffinityFactionComponent* FactionComp;
 
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "SAttributeComponent.h"
+#include "SAffinityFactionComponent.h"
 #include "SAICharacter.generated.h"
 
 
@@ -13,7 +14,7 @@ class USAttributeComponent;
 class UUserWidget;
 class USWorldUserWidget;
 class USActionComponent;
-
+class USAffinityFactionComponent;
 
 UCLASS()
 class ACTIONROGUELIKE_API ASAICharacter : public ACharacter
@@ -32,11 +33,22 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> SpottedWidgetClass;
 	
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
 
+	/* Key for AI Blackboard 'TargetActor' */
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TargetActorKey;
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetTargetActor(AActor* NewTarget);
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	AActor* GetTargetActor() const;
 
 	virtual void PostInitializeComponents() override;
 
@@ -50,6 +62,9 @@ protected:
 	//EAutoPossessAI* AutoPossessAI;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
 	USActionComponent* ActionComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components");
+	USAffinityFactionComponent* FactionComp;
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);

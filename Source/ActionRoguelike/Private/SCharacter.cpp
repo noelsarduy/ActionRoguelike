@@ -36,6 +36,8 @@ ASCharacter::ASCharacter()
 
 	ActionComp = CreateDefaultSubobject<USActionComponent>("ActionComp");
 
+	FactionComp = CreateDefaultSubobject<USAffinityFactionComponent>("FactionComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;

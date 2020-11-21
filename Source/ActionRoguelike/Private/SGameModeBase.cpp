@@ -16,6 +16,10 @@
 #include "GameFramework/GameStateBase.h"
 #include "SGameplayInterface.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include <GameFramework/GameModeBase.h>
+#include <Templates/SubclassOf.h>
+#include "SFactions.h"
+#include "SAffinityFactionComponent.h"
 
 
 static TAutoConsoleVariable<bool>CVarSpawnBots(TEXT("su.SpawnBots"), true, TEXT("Enable Spawning of bots via timer."), ECVF_Cheat);
@@ -47,6 +51,23 @@ void ASGameModeBase::StartPlay()
 		if (ensure(QueryInstance))
 		{
 			QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &ASGameModeBase::OnPowerupSpawnQueryCompleted);
+		}
+	}
+
+	//Initialize all Factions assigned in the editor
+	for (TSubclassOf<USFactions> Faction : AssignableGameFactions)
+	{
+		USFactions* NewFaction = NewObject<USFactions>(Faction);
+		GameFactions.Add(NewFaction);
+	}
+
+	for (USFactions* Faction : GameFactions)
+	{
+		Faction->InitializeGameFactions(AssignableGameFactions, GameFactions);
+		for (AActor* InitActor : Faction->GetFactionMemebers())
+		{
+			USAffinityFactionComponent* FactionComponent = USAffinityFactionComponent::GetFactionComponents(InitActor);
+			FactionComponent->InitializeFaction(Faction);
 		}
 	}
 }
@@ -195,6 +216,18 @@ void ASGameModeBase::RespawnPlayerElapsed(AController* Controller)
 	}
 }
 
+void ASGameModeBase::SetAffinityBetweenFactions(USFactions* Faction_1, USFactions* Faction_2, int32 Delta)
+{
+	Faction_1->SetFactionAffinities(Faction_2, Delta);
+	Faction_2->SetFactionAffinities(Faction_1, Delta);
+}
+
+
+TSet<USFactions*> ASGameModeBase::GetGameFactions()
+{
+	return GameFactions;
+}
+
 void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
 	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
@@ -220,6 +253,21 @@ void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 			PS->ApplyCreditsChange(CreditsPerKill);
 		}
 	}
+	
+	// Set Faction Relationships
+	USAffinityFactionComponent* KillerAFC = USAffinityFactionComponent::GetFactionComponents(Killer);
+	USAffinityFactionComponent* VictimAFC = USAffinityFactionComponent::GetFactionComponents(VictimActor);
+	if (KillerAFC->GetFaction())
+	{
+		KillerAFC->RemoveAggresor(VictimActor);
+
+		USFactions* KillerFaction = KillerAFC->GetFaction();
+		USFactions* VictimFaction = VictimAFC->GetFaction();
+
+		SetAffinityBetweenFactions(VictimFaction, KillerFaction, -CreditsPerKill);
+	}
+
+	
 
 }
 

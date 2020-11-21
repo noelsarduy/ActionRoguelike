@@ -17,22 +17,22 @@ class ACTIONROGUELIKE_API USActionComponent : public UActorComponent
 public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
-		FGameplayTagContainer ActiveGameplayTags;
+	FGameplayTagContainer ActiveGameplayTags;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-		void AddAction(AActor* Instigator, TSubclassOf<USAction> ActionClass);
+	void AddAction(AActor* Instigator, TSubclassOf<USAction> ActionClass);
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-		void RemoveAction(USAction* ActionToRemove);
+	void RemoveAction(USAction* ActionToRemove);
 	/* Returns first occurrence of action matching the class provided */
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	USAction* GetAction(TSubclassOf<USAction> ActionClass) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-		bool StartActionByName(AActor* Instigator, FName ActionName);
+	bool StartActionByName(AActor* Instigator, FName ActionName);
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-		bool StopActionByName(AActor* Instigator, FName ActionName);
+	bool StopActionByName(AActor* Instigator, FName ActionName);
 
 	USActionComponent();
 

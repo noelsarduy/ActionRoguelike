@@ -65,22 +65,22 @@ protected:
 	// HealthMax, Stamina, Strength
 
 public:
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool Kill(AActor* InstigatorActor);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool IsAlive() const;
 	
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool IsFullHealth() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetHealthMax() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetHealth() const;
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetRage() const;
 
 	

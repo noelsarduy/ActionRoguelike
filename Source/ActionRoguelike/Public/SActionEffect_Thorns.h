@@ -7,6 +7,7 @@
 #include "SAttributeComponent.h"
 #include "SActionEffect_Thorns.generated.h"
 
+
 /**
  *
  */
